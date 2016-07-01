@@ -4,13 +4,14 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import dushyant.android.dragdraw.model.Box;
 
@@ -20,9 +21,12 @@ import dushyant.android.dragdraw.model.Box;
  */
 public class BoxDrawingView extends View {
     private static final String TAG = "BoxDrawingView";
+    private static final String KEY_SUPER = "super";
+    private static final String KEY_BOXES = "boxes";
+    private static final String KEY_CURRENT = "current";
 
     private Box mCurrentBox;
-    private List<Box> mBoxen = new ArrayList<>();
+    private ArrayList<Box> mBoxes = new ArrayList<>();
 
     private Paint mBoxPaint;
     private Paint mBackgroundPaint;
@@ -50,7 +54,7 @@ public class BoxDrawingView extends View {
         //Fill the background
         canvas.drawPaint(mBackgroundPaint);
 
-        for (Box box : mBoxen) {
+        for (Box box : mBoxes) {
             float left = Math.min(box.getOrigin().x, box.getCurrent().x);
             float right = Math.max(box.getOrigin().x, box.getCurrent().x);
             float top = Math.min(box.getOrigin().y, box.getCurrent().y);
@@ -70,7 +74,7 @@ public class BoxDrawingView extends View {
                 action = "ACTION_DOWN";
                 //reset drawing state
                 mCurrentBox = new Box(current);
-                mBoxen.add(mCurrentBox);
+                mBoxes.add(mCurrentBox);
                 break;
             case MotionEvent.ACTION_MOVE:
                 action = "ACTION_MOVE";
@@ -93,5 +97,25 @@ public class BoxDrawingView extends View {
                 ", y=" + current.y);
 
         return true;
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(KEY_SUPER, super.onSaveInstanceState());
+        bundle.putParcelableArrayList(KEY_BOXES, mBoxes);
+        bundle.putParcelable(KEY_CURRENT, mCurrentBox);
+
+        return bundle;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        Bundle bundle = (Bundle) state;
+
+        Parcelable p = bundle.getParcelable(KEY_SUPER);
+        super.onRestoreInstanceState(p);
+        mBoxes = bundle.getParcelableArrayList(KEY_BOXES);
+        mCurrentBox = bundle.getParcelable(KEY_CURRENT);
     }
 }
